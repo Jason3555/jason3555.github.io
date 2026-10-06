@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<title>Tesla sign-in callback</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#222}
+textarea{width:100%;font-family:ui-monospace,monospace;font-size:.9rem;padding:.5rem;box-sizing:border-box;word-break:break-all}
+button{font-size:1rem;padding:.5rem 1rem;margin:.3rem .5rem .8rem 0;cursor:pointer}
+.ok{color:#0a7d24}.err{color:#b00020}.muted{color:#666;font-size:.9rem}
+</style>
+</head>
+<body>
+<h1>Tesla sign-in callback</h1>
+<p id="status" class="muted">Reading callback…</p>
+
+<h3>1. Full callback URL (preferred: paste this into the box)</h3>
+<textarea id="url" rows="5" readonly></textarea>
+<button id="copyUrl" type="button">Copy full URL</button>
+
+<h3>2. Just the <code>code</code></h3>
+<textarea id="code" rows="3" readonly></textarea>
+<button id="copyCode" type="button">Copy code</button>
+
+<p class="muted">State: <code id="state">–</code></p>
+<p class="muted">The code is single-use and expires within minutes. Paste it into
+<code>~/tesla/bin/exchange_code --label &lt;name&gt; '&lt;URL&gt;'</code> right away.
+Nothing on this page is sent anywhere. The code stays only in your browser.</p>
+
+<script>
+(function () {
+  var href = window.location.href;
+  var p = new URLSearchParams(window.location.search);
+  var code = p.get("code") || "";
+  var state = p.get("state") || "";
+  var err = p.get("error");
+  var errDesc = p.get("error_description");
+  document.getElementById("url").value = href;
+  document.getElementById("code").value = code;
+  document.getElementById("state").textContent = state || "–";
+  var s = document.getElementById("status");
+  if (err) {
+    s.className = "err";
+    s.textContent = "Tesla returned an error: " + err + (errDesc ? " (" + errDesc + ")" : "");
+  } else if (code) {
+    s.className = "ok";
+    s.textContent = "Authorization code received. Copy the full URL below.";
+  } else {
+    s.className = "err";
+    s.textContent = "No ?code= parameter found in this URL.";
+  }
+  function copy(id, btn) {
+    var el = document.getElementById(id);
+    var done = function () { var t = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(function () { btn.textContent = t; }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(el.value).then(done, function () { el.select(); document.execCommand("copy"); done(); });
+    } else { el.select(); document.execCommand("copy"); done(); }
+  }
+  document.getElementById("copyUrl").onclick = function () { copy("url", this); };
+  document.getElementById("copyCode").onclick = function () { copy("code", this); };
+})();
+</script>
+</body>
+</html>

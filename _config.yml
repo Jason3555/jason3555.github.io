@@ -1,0 +1,2 @@
+# GitHub Pages: make sure the dot-folder is published (Jekyll skips dotfiles by default)
+include: [.well-known]
